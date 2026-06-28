@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ProposalData, ProposalLineItem } from "@/types/proposal";
 import { downloadEstimateAsPDF } from "@/lib/pdf";
+import RoofVisualization from "./RoofVisualization";
 
 interface Props {
   data: ProposalData;
@@ -223,6 +224,14 @@ export default function ProposalView({ data, isDemo, onBack }: Props) {
               })}
             </div>
           </div>
+        )}
+
+        {/* Isometric roof visualization */}
+        {data.solarVerification && (
+          <RoofVisualization
+            segments={data.solarVerification.segments}
+            stories={parseInt(data.job.stories) || 2}
+          />
         )}
 
         {/* Material callout */}
