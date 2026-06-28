@@ -60,7 +60,9 @@ function propNum() {
 }
 
 export async function POST(req: NextRequest) {
-  const form = (await req.json()) as EstimateFormData;
+  const body = await req.json();
+  const form = body as EstimateFormData;
+  const solarData = body.solarData ?? null;
 
   const sqft = form.squareFootage;
   const pitch = pitchMultiplier(form.pitch);
@@ -172,6 +174,18 @@ export async function POST(req: NextRequest) {
 
     paymentTerms: "50% deposit due at contract signing. Remaining 50% due upon job completion.",
     notes: form.notes || "Estimate based on measurements provided. Any additional damage discovered during tear-off will be documented and communicated to homeowner before proceeding.",
+
+    ...(solarData ? {
+      solarVerification: {
+        imageryDate: solarData.imageryDate,
+        totalRoofAreaFt2: solarData.totalRoofAreaFt2,
+        groundAreaFt2: solarData.groundAreaFt2,
+        dominantPitch: solarData.dominantPitch,
+        facets: solarData.facets,
+        maxSunshineHoursPerYear: solarData.maxSunshineHoursPerYear,
+        segments: solarData.segments,
+      },
+    } : {}),
   };
 
   return NextResponse.json(proposal);

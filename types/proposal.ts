@@ -52,4 +52,14 @@ export interface ProposalData {
 
   paymentTerms: string;
   notes: string;
+
+  solarVerification?: {
+    imageryDate: string;
+    totalRoofAreaFt2: number;
+    groundAreaFt2: number;
+    dominantPitch: string;
+    facets: number;
+    maxSunshineHoursPerYear: number;
+    segments: { areaFt2: number; pitchDegrees: number; azimuthDegrees: number }[];
+  };
 }

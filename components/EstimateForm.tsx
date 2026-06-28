@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { EstimateFormData, RoofMaterial, RoofPitch, Stories, Condition } from "@/types/estimate";
+import { SolarRoofData } from "@/lib/solar";
 
 const PITCHES: RoofPitch[] = ["4/12", "5/12", "6/12", "7/12", "8/12", "9/12", "10/12", "11/12", "12/12+"];
 const MATERIALS: { value: RoofMaterial; label: string }[] = [
@@ -112,16 +113,57 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
   );
 }
 
+function azimuthLabel(deg: number): string {
+  if (deg >= 337.5 || deg < 22.5) return "N";
+  if (deg < 67.5) return "NE";
+  if (deg < 112.5) return "E";
+  if (deg < 157.5) return "SE";
+  if (deg < 202.5) return "S";
+  if (deg < 247.5) return "SW";
+  if (deg < 292.5) return "W";
+  return "NW";
+}
+
 export default function EstimateForm({ onSubmit, loading }: Props) {
   const [form, setForm] = useState<EstimateFormData>(empty);
+  const [solarData, setSolarData] = useState<SolarRoofData | null>(null);
+  const [solarLoading, setSolarLoading] = useState(false);
+  const [solarError, setSolarError] = useState<string | null>(null);
 
   function set<K extends keyof EstimateFormData>(key: K, value: EstimateFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  async function fetchSolar() {
+    if (!form.address.trim()) {
+      setSolarError("Enter the property address first.");
+      return;
+    }
+    setSolarLoading(true);
+    setSolarError(null);
+    try {
+      const res = await fetch(`/api/solar-lookup?address=${encodeURIComponent(form.address)}`);
+      if (!res.ok) throw new Error((await res.json()).error ?? "Solar lookup failed");
+      const data: SolarRoofData = await res.json();
+      setSolarData(data);
+      // Auto-fill form fields from satellite data
+      setForm((prev) => ({
+        ...prev,
+        squareFootage: data.totalRoofAreaFt2,
+        pitch: data.dominantPitch as RoofPitch,
+        facets: data.facets,
+        address: data.address,
+      }));
+    } catch (e) {
+      setSolarError(e instanceof Error ? e.message : "Solar lookup failed");
+    } finally {
+      setSolarLoading(false);
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit(form);
+    onSubmit({ ...form, solarData } as EstimateFormData & { solarData?: SolarRoofData });
   }
 
   const conditionOptions: { value: Condition; label: string }[] = [
@@ -148,18 +190,79 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
           onChange={(e) => set("clientName", e.target.value)}
           required
         />
-        <Input
-          label="Property Address"
-          type="text"
-          placeholder="123 Main St, Dallas TX 75201"
-          value={form.address}
-          onChange={(e) => set("address", e.target.value)}
-          required
-        />
+
+        {/* Address + Solar lookup */}
+        <div className="col-span-full">
+          <Label>Property Address</Label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="123 Main St, Dallas TX 75201"
+              value={form.address}
+              onChange={(e) => { set("address", e.target.value); setSolarData(null); }}
+              required
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+            />
+            <button
+              type="button"
+              onClick={fetchSolar}
+              disabled={solarLoading}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap transition-colors"
+            >
+              {solarLoading ? (
+                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              ) : (
+                "☀️"
+              )}
+              {solarLoading ? "Looking up..." : "Auto-fill from Google Solar"}
+            </button>
+          </div>
+          {solarError && <p className="text-red-500 text-xs mt-1">{solarError}</p>}
+        </div>
+
+        {/* Solar verification card */}
+        {solarData && (
+          <div className="col-span-full bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-blue-600 font-bold text-xs uppercase tracking-widest">☀️ Google Solar API — Roof Verified</span>
+              <span className="text-blue-400 text-xs">Imagery: {solarData.imageryDate}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-xl font-black text-blue-700">{solarData.totalRoofAreaFt2.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Roof sq ft</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-xl font-black text-blue-700">{solarData.dominantPitch}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Dominant pitch</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-xl font-black text-blue-700">{solarData.facets}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Roof facets</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-xl font-black text-blue-700">{solarData.maxSunshineHoursPerYear.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Sunshine hrs/yr</p>
+              </div>
+            </div>
+            <p className="text-xs text-blue-600 font-semibold mb-1">Roof segments:</p>
+            <div className="flex flex-wrap gap-2">
+              {solarData.segments.map((seg, i) => (
+                <span key={i} className="bg-white border border-blue-100 text-xs text-gray-700 px-2 py-1 rounded-lg">
+                  {seg.areaFt2.toLocaleString()} ft² · {seg.pitchDegrees.toFixed(1)}° · {azimuthLabel(seg.azimuthDegrees)}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs text-green-600 mt-2 font-medium">✓ Square footage, pitch, and facet count auto-filled from satellite data.</p>
+          </div>
+        )}
 
         <SectionHeader>Roof Measurements</SectionHeader>
         <Input
-          label="Square Footage (roof area)"
+          label="Square Footage (sloped roof area)"
           type="number"
           min={100}
           placeholder="2400"
@@ -281,7 +384,7 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
 
         <SectionHeader>Additional Notes</SectionHeader>
         <div className="col-span-full">
-          <Label>Notes for the AI Estimator</Label>
+          <Label>Notes for the Estimator</Label>
           <textarea
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
             rows={3}
@@ -301,16 +404,12 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
           <>
             <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
             Generating Estimate...
           </>
         ) : (
-          "Generate Estimate with AI →"
+          "Generate Estimate →"
         )}
       </button>
     </form>

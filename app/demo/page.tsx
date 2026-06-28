@@ -1,6 +1,8 @@
 import ProposalView from "@/components/ProposalView";
 import { ProposalData } from "@/types/proposal";
 
+// Real roof data for 102 Bartlett Drive, North Wales PA 19454
+// fetched from Google Solar API (imagery date: 2022-09-19)
 const DEMO: ProposalData = {
   proposalNumber: "PRE-2025-0847",
   issuedDate: "June 28, 2025",
@@ -8,24 +10,24 @@ const DEMO: ProposalData = {
 
   company: {
     name: "Peak Ridge Roofing Co.",
-    phone: "(512) 844-7200",
+    phone: "(215) 555-0192",
     email: "estimates@peakridgeroofing.com",
-    license: "TX-ROC #48821",
+    license: "PA-HIC #PA124831",
   },
 
   client: {
-    name: "Michael & Sarah Johnson",
-    address: "4821 Maplewood Drive",
-    city: "Austin, TX 78745",
+    name: "Robert & Linda Bartlett",
+    address: "102 Bartlett Drive",
+    city: "North Wales, PA 19454",
   },
 
   job: {
-    squareFootage: 2600,
-    pitch: "6/12",
+    squareFootage: 3960,   // from Google Solar API: 367.65 m² × 10.7639
+    pitch: "5/12",         // dominant segment: 22.13° ≈ 5/12
     stories: "2",
-    material: "Owens Corning Duration® Architectural Shingles — Shasta White",
-    existingLayers: 2,
-    deckingCondition: "Fair — minor soft spots along north valley",
+    material: "Owens Corning Duration® Architectural Shingles — Estate Gray",
+    existingLayers: 1,
+    deckingCondition: "Fair — minor wear along valleys",
     timeline: "2–3 days",
     startDate: "Within 5–7 business days of acceptance",
   },
@@ -34,81 +36,81 @@ const DEMO: ProposalData = {
     {
       id: "1",
       category: "Tear-Off & Disposal",
-      description: "Remove and dispose of 2 existing shingle layers",
-      qty: 2600,
+      description: "Remove and dispose of existing single-layer shingle roof",
+      qty: 3960,
       unit: "sq ft",
-      unitPrice: 1.4,
-      total: 3640,
+      unitPrice: 1.1,
+      total: 4356,
     },
     {
       id: "2",
       category: "Decking",
-      description: "Replace damaged decking boards — north valley (approx. 160 sq ft)",
-      qty: 160,
+      description: "Replace deteriorated decking boards — valley areas (approx. 317 sq ft)",
+      qty: 317,
       unit: "sq ft",
       unitPrice: 3.0,
-      total: 480,
+      total: 951,
     },
     {
       id: "3",
       category: "Underlayment & Ice Shield",
       description: "Synthetic felt underlayment — full roof",
-      qty: 2600,
+      qty: 3960,
       unit: "sq ft",
       unitPrice: 0.7,
-      total: 1820,
+      total: 2772,
     },
     {
       id: "4",
       category: "Underlayment & Ice Shield",
-      description: "Ice & water shield — eaves and valleys",
-      qty: 300,
+      description: "Ice & water shield — eaves and all valleys (PA code req.)",
+      qty: 476,
       unit: "sq ft",
       unitPrice: 1.5,
-      total: 450,
+      total: 714,
     },
     {
       id: "5",
       category: "Materials",
-      description: "Owens Corning Duration® Architectural Shingles (130 mph wind warranty)",
-      qty: 2600,
+      description: "Owens Corning Duration® Architectural Shingles (130 mph wind rated)",
+      qty: 3960,
       unit: "sq ft",
       unitPrice: 2.3,
-      total: 5980,
+      total: 9108,
     },
     {
       id: "6",
       category: "Materials",
-      description: "Ridge cap shingles — hip and ridge",
-      qty: 190,
+      description: "Ridge cap shingles — hip and ridge lines",
+      qty: 252,
       unit: "lin ft",
       unitPrice: 2.0,
-      total: 380,
+      total: 504,
     },
     {
       id: "7",
       category: "Materials",
       description: "Aluminum drip edge — all eaves and rakes",
-      qty: 210,
+      qty: 280,
       unit: "lin ft",
       unitPrice: 2.0,
-      total: 420,
+      total: 560,
     },
     {
       id: "8",
       category: "Labor",
-      description: "Roofing installation — full re-roof",
-      qty: 2600,
+      description: "Roofing installation — full re-roof (2-story multiplier applied)",
+      qty: 3960,
       unit: "sq ft",
-      unitPrice: 1.4,
-      total: 3640,
+      unitPrice: 1.61,
+      total: 6376,
     },
     {
       id: "9",
       category: "Flashing & Penetrations",
-      description: "Chimney counter-flashing — step and cap",
+      description: "Chimney counter-flashing — step and cap (1 chimney)",
       qty: 1,
-      unit: "chimney",
+      unit: "ea",
       unitPrice: 450,
       total: 450,
     },
@@ -116,15 +118,15 @@ const DEMO: ProposalData = {
       id: "10",
       category: "Flashing & Penetrations",
       description: "Pipe boot vents — rubber collar replacement",
-      qty: 3,
+      qty: 4,
       unit: "ea",
       unitPrice: 60,
-      total: 180,
+      total: 240,
     },
     {
       id: "11",
       category: "Permit & Fees",
-      description: "City of Austin building permit",
+      description: "Montgomery County building permit",
       qty: 1,
       unit: "ea",
       unitPrice: 350,
@@ -133,16 +135,16 @@ const DEMO: ProposalData = {
     {
       id: "12",
       category: "Permit & Fees",
-      description: "Haul-away and landfill disposal fee",
-      qty: 1,
+      description: "Haul-away and landfill disposal — 2 loads",
+      qty: 2,
       unit: "load",
       unitPrice: 280,
-      total: 280,
+      total: 560,
     },
   ],
 
   scopeOfWork:
-    "Peak Ridge Roofing Co. will perform a complete tear-off and replacement of the existing two-layer shingle roof at 4821 Maplewood Drive. Work includes removal and disposal of all existing roofing material, replacement of approximately 160 sq ft of damaged roof decking along the north valley, installation of full synthetic underlayment with ice and water shield at all eaves and valley areas, and installation of Owens Corning Duration® architectural shingles with matching ridge caps. All step flashing, chimney counter-flashing, and pipe boot vents will be replaced. Site will be cleaned daily and a magnetic sweep will be performed at job completion.",
+    "Peak Ridge Roofing Co. will perform a complete tear-off and replacement of the existing single-layer shingle roof at 102 Bartlett Drive. Google Solar satellite imagery (Sept. 2022) confirms a 5-segment roof spanning 3,960 sq ft of sloped surface area. Work includes removal and disposal of all existing material, replacement of approximately 317 sq ft of deteriorated decking along the valley areas, installation of full synthetic underlayment with ice and water shield at all eaves and valleys per PA code requirements, and installation of Owens Corning Duration® architectural shingles with matching ridge caps. All step flashing, chimney counter-flashing, and pipe boot vents will be replaced. Jobsite will be cleaned daily with a magnetic sweep performed upon completion.",
 
   warranties: [
     { label: "Manufacturer — Shingles", detail: "Owens Corning Platinum Protection Limited Lifetime Warranty" },
@@ -150,14 +152,31 @@ const DEMO: ProposalData = {
     { label: "Workmanship", detail: "10-year contractor workmanship warranty — Peak Ridge Roofing" },
   ],
 
-  subtotal: 18070,
-  discount: 570,
+  subtotal: 26941,
+  discount: 941,
   discountType: "flat",
-  total: 17500,
+  total: 26000,
 
   paymentTerms: "50% deposit due at contract signing. Remaining 50% due upon completion.",
   notes:
-    "Price is based on measurements provided. Final invoice will reflect actual materials used. Any additional decking damage discovered during tear-off will be charged at $3.00/sq ft and communicated to homeowner before proceeding.",
+    "Roof measurements verified via Google Solar API satellite imagery (2022-09-19). Final invoice reflects actual materials used. Any additional decking damage found during tear-off will be documented and communicated before proceeding at $3.00/sq ft.",
+
+  // Real data from Google Solar API
+  solarVerification: {
+    imageryDate: "2022-09-19",
+    totalRoofAreaFt2: 3960,
+    groundAreaFt2: 3634,
+    dominantPitch: "5/12",
+    facets: 5,
+    maxSunshineHoursPerYear: 1506,
+    segments: [
+      { areaFt2: 1560, pitchDegrees: 22.13, azimuthDegrees: 45.6 },
+      { areaFt2: 634,  pitchDegrees: 22.34, azimuthDegrees: 225.3 },
+      { areaFt2: 615,  pitchDegrees: 23.88, azimuthDegrees: 232.4 },
+      { areaFt2: 321,  pitchDegrees: 21.97, azimuthDegrees: 221.9 },
+      { areaFt2: 243,  pitchDegrees: 20.43, azimuthDegrees: 42.0 },
+    ],
+  },
 };
 
 export default function DemoPage() {

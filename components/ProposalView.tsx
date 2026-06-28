@@ -186,6 +186,45 @@ export default function ProposalView({ data, isDemo, onBack }: Props) {
           </div>
         </div>
 
+        {/* Google Solar verification card */}
+        {data.solarVerification && (
+          <div className="mx-8 mt-5 bg-blue-50 border border-blue-200 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-blue-700 font-bold text-xs uppercase tracking-widest">☀️ Roof Data — Verified by Google Solar API</span>
+              <span className="ml-auto text-blue-400 text-xs">Imagery: {data.solarVerification.imageryDate}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-lg font-black text-blue-700">{data.solarVerification.totalRoofAreaFt2.toLocaleString()}</p>
+                <p className="text-xs text-gray-500">Roof sq ft (sloped)</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-lg font-black text-blue-700">{data.solarVerification.dominantPitch}</p>
+                <p className="text-xs text-gray-500">Dominant pitch</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-lg font-black text-blue-700">{data.solarVerification.facets}</p>
+                <p className="text-xs text-gray-500">Roof segments</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
+                <p className="text-lg font-black text-blue-700">{data.solarVerification.maxSunshineHoursPerYear.toLocaleString()}</p>
+                <p className="text-xs text-gray-500">Sunshine hrs/yr</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {data.solarVerification.segments.map((seg, i) => {
+                const dirs = ["N","NE","E","SE","S","SW","W","NW"];
+                const dir = dirs[Math.round(seg.azimuthDegrees / 45) % 8];
+                return (
+                  <span key={i} className="bg-white border border-blue-100 text-xs text-gray-600 px-2 py-1 rounded-md">
+                    {seg.areaFt2.toLocaleString()} ft² · {seg.pitchDegrees.toFixed(1)}° · {dir}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Material callout */}
         <div className="mx-8 my-5 bg-orange-50 border border-orange-200 rounded-xl px-5 py-3 flex items-center gap-3">
           <span className="text-2xl">🏗️</span>
