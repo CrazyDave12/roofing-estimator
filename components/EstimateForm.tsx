@@ -41,16 +41,28 @@ interface Props {
   loading: boolean;
 }
 
+const inputClass =
+  "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 bg-white placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 transition-colors";
+
 function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-sm font-semibold text-gray-700 mb-1">{children}</label>;
+  return (
+    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+      {children}
+    </label>
+  );
 }
 
+let sectionCount = 0;
 function SectionHeader({ children }: { children: React.ReactNode }) {
+  sectionCount++;
+  const n = sectionCount;
   return (
-    <div className="col-span-full mt-4 mb-1">
-      <h3 className="text-xs font-bold uppercase tracking-widest text-orange-600 border-b border-orange-100 pb-1">
-        {children}
-      </h3>
+    <div className="col-span-full mt-6 mb-2 flex items-center gap-3">
+      <span className="w-6 h-6 rounded-full bg-orange-500 text-white text-xs font-black flex items-center justify-center flex-shrink-0">
+        {n}
+      </span>
+      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-700">{children}</h3>
+      <div className="flex-1 h-px bg-slate-100" />
     </div>
   );
 }
@@ -59,10 +71,7 @@ function Input({ label, ...props }: { label: string } & React.InputHTMLAttribute
   return (
     <div>
       <Label>{label}</Label>
-      <input
-        {...props}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
-      />
+      <input {...props} className={inputClass} />
     </div>
   );
 }
@@ -78,10 +87,7 @@ function Select<T extends string>({
   return (
     <div>
       <Label>{label}</Label>
-      <select
-        {...props}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
-      >
+      <select {...props} className={inputClass}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -94,13 +100,13 @@ function Select<T extends string>({
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2 bg-white">
-      <span className="text-sm text-gray-700">{label}</span>
+    <div className="flex items-center justify-between border border-slate-200 rounded-xl px-4 py-3 bg-white">
+      <span className="text-sm text-slate-700 font-medium">{label}</span>
       <button
         type="button"
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          checked ? "bg-orange-500" : "bg-gray-300"
+          checked ? "bg-orange-500" : "bg-slate-200"
         }`}
       >
         <span
@@ -125,6 +131,7 @@ function azimuthLabel(deg: number): string {
 }
 
 export default function EstimateForm({ onSubmit, loading }: Props) {
+  sectionCount = 0;
   const [form, setForm] = useState<EstimateFormData>(empty);
   const [solarData, setSolarData] = useState<SolarRoofData | null>(null);
   const [solarLoading, setSolarLoading] = useState(false);
@@ -146,7 +153,6 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
       if (!res.ok) throw new Error((await res.json()).error ?? "Solar lookup failed");
       const data: SolarRoofData = await res.json();
       setSolarData(data);
-      // Auto-fill form fields from satellite data
       setForm((prev) => ({
         ...prev,
         squareFootage: data.totalRoofAreaFt2,
@@ -179,7 +185,7 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-1">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SectionHeader>Client Info</SectionHeader>
         <Input
@@ -201,13 +207,13 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
               value={form.address}
               onChange={(e) => { set("address", e.target.value); setSolarData(null); }}
               required
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+              className={inputClass + " flex-1"}
             />
             <button
               type="button"
               onClick={fetchSolar}
               disabled={solarLoading}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap transition-colors"
+              className="flex items-center gap-2 bg-[#0f172a] hover:bg-slate-700 disabled:bg-slate-300 text-white text-xs font-bold px-4 py-2.5 rounded-xl whitespace-nowrap transition-colors border border-slate-700"
             >
               {solarLoading ? (
                 <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
@@ -215,48 +221,46 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
               ) : (
-                "☀️"
+                <span className="text-orange-400">☀</span>
               )}
-              {solarLoading ? "Looking up..." : "Auto-fill from Google Solar"}
+              {solarLoading ? "Looking up..." : "Auto-fill from Solar"}
             </button>
           </div>
-          {solarError && <p className="text-red-500 text-xs mt-1">{solarError}</p>}
+          {solarError && <p className="text-red-500 text-xs mt-1.5">{solarError}</p>}
         </div>
 
-        {/* Solar verification card */}
+        {/* Solar verification card — dark */}
         {solarData && (
-          <div className="col-span-full bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-blue-600 font-bold text-xs uppercase tracking-widest">☀️ Google Solar API — Roof Verified</span>
-              <span className="text-blue-400 text-xs">Imagery: {solarData.imageryDate}</span>
+          <div className="col-span-full bg-[#0f172a] rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-orange-400 text-sm">☀</span>
+                <span className="text-orange-400 font-bold text-xs uppercase tracking-widest">Google Solar — Roof Verified</span>
+              </div>
+              <span className="text-slate-500 text-xs">Imagery: {solarData.imageryDate}</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
-                <p className="text-xl font-black text-blue-700">{solarData.totalRoofAreaFt2.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Roof sq ft</p>
-              </div>
-              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
-                <p className="text-xl font-black text-blue-700">{solarData.dominantPitch}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Dominant pitch</p>
-              </div>
-              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
-                <p className="text-xl font-black text-blue-700">{solarData.facets}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Roof facets</p>
-              </div>
-              <div className="bg-white rounded-lg p-3 text-center border border-blue-100">
-                <p className="text-xl font-black text-blue-700">{solarData.maxSunshineHoursPerYear.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Sunshine hrs/yr</p>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {[
+                { val: solarData.totalRoofAreaFt2.toLocaleString(), label: "Roof sq ft" },
+                { val: solarData.dominantPitch, label: "Dominant pitch" },
+                { val: solarData.facets, label: "Roof facets" },
+                { val: solarData.maxSunshineHoursPerYear.toLocaleString(), label: "Sunshine hrs/yr" },
+              ].map(({ val, label }) => (
+                <div key={label} className="bg-slate-800 rounded-xl p-3 text-center">
+                  <p className="text-xl font-black text-white">{val}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+                </div>
+              ))}
             </div>
-            <p className="text-xs text-blue-600 font-semibold mb-1">Roof segments:</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">Roof segments</p>
+            <div className="flex flex-wrap gap-2 mb-3">
               {solarData.segments.map((seg, i) => (
-                <span key={i} className="bg-white border border-blue-100 text-xs text-gray-700 px-2 py-1 rounded-lg">
+                <span key={i} className="bg-slate-800 border border-slate-700 text-xs text-slate-300 px-2.5 py-1.5 rounded-lg">
                   {seg.areaFt2.toLocaleString()} ft² · {seg.pitchDegrees.toFixed(1)}° · {azimuthLabel(seg.azimuthDegrees)}
                 </span>
               ))}
             </div>
-            <p className="text-xs text-green-600 mt-2 font-medium">✓ Square footage, pitch, and facet count auto-filled from satellite data.</p>
+            <p className="text-xs text-emerald-400 font-medium">Sq footage, pitch, and facet count auto-filled from satellite data.</p>
           </div>
         )}
 
@@ -382,11 +386,11 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
           onChange={(v) => set("fasciaRepair", v)}
         />
 
-        <SectionHeader>Additional Notes</SectionHeader>
+        <SectionHeader>Notes</SectionHeader>
         <div className="col-span-full">
           <Label>Notes for the Estimator</Label>
           <textarea
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+            className={inputClass + " resize-none"}
             rows={3}
             placeholder="Any special conditions, storm damage, customer requests..."
             value={form.notes}
@@ -398,7 +402,7 @@ export default function EstimateForm({ onSubmit, loading }: Props) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full mt-4 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold py-3 px-6 rounded-xl text-base transition-colors flex items-center justify-center gap-2"
+        className="w-full mt-6 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-black py-3.5 px-6 rounded-2xl text-base transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
       >
         {loading ? (
           <>
